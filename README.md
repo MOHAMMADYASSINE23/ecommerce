@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E-commerce Store
 
-## Getting Started
+A full-stack commerce web application built with Next.js and Sanity. The storefront fetches product and banner content from Sanity and renders the product collection alongside hero and footer banners.
 
-First, run the development server:
+## Tech stack
+
+- **Next.js 15** and **React 19** for the web application
+- **Sanity** and **next-sanity** for structured product and banner content
+- **Stripe** packages are included for payment-related integration
+- **Tailwind CSS** tooling and ESLint for styling support and code quality
+
+## Features visible in the current codebase
+
+- Product listing queried from Sanity
+- Dynamic hero and footer banner content queried from Sanity
+- Reusable product and banner components
+- Next.js App Router structure
+
+Payment and checkout behavior should be verified in the current implementation before treating it as production-ready.
+
+## Getting started
+
+### Requirements
+
+- Node.js compatible with the installed Next.js version
+- npm
+- A configured Sanity project with the required product and banner schemas
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Configure environment variables
+
+Create a local `.env.local` file for the credentials and project settings required by the Sanity client and any payment-related features. Check the source configuration for the exact variable names. **Do not commit secrets or real API keys.**
+
+### Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Available scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Build the production application |
+| `npm run start` | Start the production server after building |
+| `npm run lint` | Run ESLint |
 
-## Learn More
+## Project status
 
-To learn more about Next.js, take a look at the following resources:
+This repository is under active improvement. Before deployment, verify environment configuration, empty/loading/error states, checkout and payment handling, accessibility, responsive layouts, and production build behavior.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Security
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Keep environment files and credentials out of Git.
+- Use test-mode payment credentials during development.
+- Never expose secret payment keys in browser-side code.
+- Rotate any real secret that has been exposed.
