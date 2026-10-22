@@ -35,6 +35,22 @@ export async function POST(request) {
     return NextResponse.json({ message: "Checkout site URL is invalid." }, { status: 503 });
   }
 
+  const origin = request.headers.get("origin");
+  if (!origin) {
+    return NextResponse.json({ message: "Checkout request origin is required." }, { status: 403 });
+  }
+  try {
+    if (new URL(origin).origin !== siteOrigin) {
+      return NextResponse.json({ message: "Checkout request origin is not allowed." }, { status: 403 });
+    }
+  } catch {
+    return NextResponse.json({ message: "Checkout request origin is invalid." }, { status: 403 });
+  }
+
+  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) {
+    return NextResponse.json({ message: "Checkout request must be JSON." }, { status: 415 });
+  }
+
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > 64 * 1024) {
     return NextResponse.json({ message: "Checkout request is too large." }, { status: 413 });
