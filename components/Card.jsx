@@ -1,60 +1,46 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { AiOutlineMinus, AiOutlinePlus, AiOutlineLeft, AiOutlineShopping } from 'react-icons/ai';
 import { TiDeleteOutline } from 'react-icons/ti';
 
 import { useStateContext } from '../context/StateContext';
 import { urlFor } from '../src/sanity/lib/client';
-import getStripe from '../src/sanity/lib/getStripe';
 
 const Card = () => {
     const cartRef = useRef();
+    const [checkoutError, setCheckoutError] = useState('');
     const { totalPrice, totalQuantities, cartItems, setShowCart, toggleCartItemQuantity, onRemove } = useStateContext();
 
     const handleCheckout = async () => {
-        console.log('Starting checkout process...');
-        console.log('Cart items:', cartItems);
+        setCheckoutError('');
 
         try {
-            const stripe = await getStripe();
-            console.log('Stripe instance:', stripe);
-
             const response = await fetch('/api/stripe', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(cartItems),
             });
 
-            console.log('API response status:', response.status);
-
+            const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                if (response.status === 404) {
-                    console.error('API endpoint not found. Please check if the Stripe API route is properly configured.');
-                } else if (response.status === 500) {
-                    console.error('Server error (500)');
-                } else {
-                    console.error(`HTTP error! status: ${response.status}`);
-                }
-                return;
+                throw new Error(data.message || 'Unable to start checkout. Please try again.');
+            }
+            if (typeof data.url !== 'string') {
+                throw new Error('Checkout did not return a payment URL.');
             }
 
-            const data = await response.json();
-            console.log('API response data:', data);
-
-            if (data.id) {
-                console.log('Redirecting to Stripe checkout...');
-                stripe.redirectToCheckout({ sessionId: data.id });
-            } else {
-                console.error('No session ID received from API');
+            const checkoutUrl = new URL(data.url);
+            if (checkoutUrl.protocol !== 'https:' || checkoutUrl.hostname !== 'checkout.stripe.com') {
+                throw new Error('Checkout returned an invalid payment URL.');
             }
+
+            window.location.assign(checkoutUrl.toString());
         } catch (error) {
-            console.error('Checkout error:', error);
+            setCheckoutError(error instanceof Error ? error.message : 'Unable to start checkout. Please try again.');
         }
-     }
+    };
   
       return (
     <div className="cart-wrapper" ref={cartRef}>
@@ -112,6 +98,7 @@ const Card = () => {
               <h3>${totalPrice}</h3>
             </div>
             <div className="btn-container">
+              {checkoutError && <p className="checkout-error" role="alert">{checkoutError}</p>}
               <button type="button" className="btn" onClick={handleCheckout}>
                 Pay with Stripe
               </button>
