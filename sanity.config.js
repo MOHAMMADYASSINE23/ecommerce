@@ -13,8 +13,8 @@ import {schema} from './src/sanity/schema'
 
 export default defineConfig({
   basePath: '/studio',
-  projectId: 'qp5316nb',
-  dataset: 'production',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'qp5316nb',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   // Add and edit the content schema in the './sanity/schemaTypes' folder
   schema,
   plugins: [
