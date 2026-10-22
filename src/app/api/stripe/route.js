@@ -35,6 +35,11 @@ export async function POST(request) {
     return NextResponse.json({ message: "Checkout site URL is invalid." }, { status: 503 });
   }
 
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > 64 * 1024) {
+    return NextResponse.json({ message: "Checkout request is too large." }, { status: 413 });
+  }
+
   let cartItems;
   try {
     cartItems = await request.json();
@@ -104,6 +109,9 @@ export async function POST(request) {
       .split(",")
       .map((country) => country.trim().toUpperCase())
       .filter(Boolean);
+    if (allowedCountries.length === 0 || allowedCountries.some((country) => !/^[A-Z]{2}$/.test(country))) {
+      return NextResponse.json({ message: "Shipping countries are not configured correctly." }, { status: 503 });
+    }
 
     const session = await stripe.checkout.sessions.create({
       line_items: lineItems,
