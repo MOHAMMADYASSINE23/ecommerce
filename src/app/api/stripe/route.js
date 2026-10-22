@@ -1,53 +1,125 @@
-import Stripe from 'stripe';
-import { NextResponse } from 'next/server';
+import Stripe from "stripe";
+import { NextResponse } from "next/server";
+import { serverClient } from "@/src/sanity/lib/serverClient";
+import { urlFor } from "@/src/sanity/lib/client";
 
-const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY);
+const PRODUCT_QUERY = '*[_type == "product" && _id in $ids]{_id, name, price, image}';
+
+function isValidProductId(value) {
+  return typeof value === "string" && /^[a-zA-Z0-9._-]{1,128}$/.test(value);
+}
 
 export async function POST(request) {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const shippingRateId = process.env.STRIPE_SHIPPING_RATE_ID;
+
+  if (!secretKey || !siteUrl || !shippingRateId) {
+    return NextResponse.json(
+      { message: "Checkout is not fully configured on this deployment." },
+      { status: 503 },
+    );
+  }
+
+  let siteOrigin;
   try {
-    const cartItems = await request.json();
+    const parsedSiteUrl = new URL(siteUrl);
+    if (!["https:", "http:"].includes(parsedSiteUrl.protocol)) {
+      throw new Error("Invalid site URL protocol");
+    }
+    if (process.env.NODE_ENV === "production" && parsedSiteUrl.protocol !== "https:") {
+      throw new Error("Production site URL must use HTTPS");
+    }
+    siteOrigin = parsedSiteUrl.origin;
+  } catch {
+    return NextResponse.json({ message: "Checkout site URL is invalid." }, { status: 503 });
+  }
 
-    const params = {
-      submit_type: 'pay',
-      mode: 'payment',
-      payment_method_types: ['card'],
-      billing_address_collection: 'auto',
-      shipping_options: [
-        { shipping_rate: 'shr_1S8XZCC9uw8VVKR6yMSScGPY' },
-      ],
-      line_items: cartItems.map((item) => {
-        const img = item.image[0].asset._ref;
-        const newImage = img.replace('image-', 'https://cdn.sanity.io/images/qp5316nb/production/').replace('-webp', '.webp');
+  let cartItems;
+  try {
+    cartItems = await request.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid checkout request." }, { status: 400 });
+  }
 
-        return {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: item.name,
-              images: [newImage],
-            },
-            unit_amount: item.price * 100,
-          },
-          adjustable_quantity: {
-            enabled:true,
-            minimum: 1,
-          },
-          quantity: item.quantity
-        }
-      }),
-      success_url: `${request.headers.get('origin')}/success`,
-      cancel_url: `${request.headers.get('origin')}/canceled`,
+  if (!Array.isArray(cartItems) || cartItems.length < 1 || cartItems.length > 50) {
+    return NextResponse.json({ message: "Cart must contain between 1 and 50 items." }, { status: 400 });
+  }
+
+  const validItems = cartItems.map((item) => ({
+    id: item?._id,
+    quantity: item?.quantity,
+  }));
+
+  if (validItems.some((item) =>
+    !isValidProductId(item.id) ||
+    !Number.isInteger(item.quantity) ||
+    item.quantity < 1 ||
+    item.quantity > 20
+  )) {
+    return NextResponse.json({ message: "Cart contains an invalid product or quantity." }, { status: 400 });
+  }
+
+  const ids = [...new Set(validItems.map((item) => item.id))];
+
+  try {
+    const products = await serverClient.fetch(PRODUCT_QUERY, { ids });
+    const productsById = new Map(products.map((product) => [product._id, product]));
+
+    if (productsById.size !== ids.length) {
+      return NextResponse.json({ message: "One or more products are no longer available." }, { status: 400 });
     }
 
-    // Create Checkout Sessions from body params.
-    const session = await stripe.checkout.sessions.create(params);
+    const lineItems = validItems.map(({ id, quantity }) => {
+      const product = productsById.get(id);
+      const price = Number(product?.price);
 
-    return NextResponse.json(session);
-  } catch (err) {
-    console.error('Stripe API error:', err);
-    return NextResponse.json(
-      { error: err.message || 'Internal server error' },
-      { status: err.statusCode || 500 }
-    );
+      if (
+        !product?.name ||
+        !Number.isFinite(price) ||
+        price <= 0 ||
+        price > 100000
+      ) {
+        throw new Error("Invalid product pricing in Sanity catalog.");
+      }
+
+      const productData = { name: product.name };
+      const image = product.image?.[0];
+      if (image) {
+        productData.images = [urlFor(image).url()];
+      }
+
+      return {
+        price_data: {
+          currency: "usd",
+          product_data: productData,
+          unit_amount: Math.round(price * 100),
+        },
+        quantity,
+      };
+    });
+
+    const stripe = new Stripe(secretKey);
+    const allowedCountries = (process.env.STRIPE_ALLOWED_SHIPPING_COUNTRIES || "US")
+      .split(",")
+      .map((country) => country.trim().toUpperCase())
+      .filter(Boolean);
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: lineItems,
+      mode: "payment",
+      success_url: siteOrigin + "/success?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: siteOrigin + "/?checkout=canceled",
+      billing_address_collection: "auto",
+      shipping_address_collection: { allowed_countries: allowedCountries },
+      shipping_options: [{ shipping_rate: shippingRateId }],
+    });
+
+    return NextResponse.json({ id: session.id, url: session.url }, { status: 200 });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Stripe checkout creation failed:", error);
+    }
+    return NextResponse.json({ message: "Unable to create checkout session." }, { status: 500 });
   }
 }
