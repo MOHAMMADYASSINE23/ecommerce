@@ -1,13 +1,13 @@
 import React from 'react';
-import { client } from '../sanity/lib/client';
+import { serverClient } from '../sanity/lib/serverClient';
 import { Product, FooterBanner, HeroBanner } from '../../components'
 
 const Page = async () => {
   const query = '*[_type == "product"]';
-  const products = await client.fetch(query);
+  const products = await serverClient.fetch(query);
 
   const bannerQuery = '*[_type == "banner"]';
-  const bannerData = await client.fetch(bannerQuery);
+  const bannerData = await serverClient.fetch(bannerQuery);
 
   return (
     <div>
