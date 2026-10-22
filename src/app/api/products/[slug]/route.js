@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { serverClient } from "@/sanity/lib/serverClient";
 
-const PRODUCT_QUERY = '*[_type == "product" && slug.current == $slug][0]';
-const PRODUCTS_QUERY = '*[_type == "product"]';
+const PRODUCT_QUERY = '*[_type == "product" && slug.current == $slug][0]{_id, name, slug, price, details, image}';
+const PRODUCTS_QUERY = '*[_type == "product"][0...100]{_id, name, slug, price, details, image}';
 
 export async function GET(_request, { params }) {
   const { slug } = await params;
