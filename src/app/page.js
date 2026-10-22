@@ -2,6 +2,8 @@ import React from 'react';
 import { serverClient } from '../sanity/lib/serverClient';
 import { Product, FooterBanner, HeroBanner } from '../../components'
 
+export const dynamic = "force-dynamic";
+
 const Page = async () => {
   const query = '*[_type == "product"]{_id, name, slug, price, details, image}';
   const products = await serverClient.fetch(query);
