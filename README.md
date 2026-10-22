@@ -1,65 +1,60 @@
 # E-commerce Store
 
-A full-stack commerce web application built with Next.js and Sanity. The storefront fetches product and banner content from Sanity and renders the product collection alongside hero and footer banners.
+A Next.js storefront using Sanity for product content and Stripe Checkout for payments. The project is a portfolio/demo storefront, not a production-ready commerce platform.
 
-## Tech stack
+## Features
 
-- **Next.js 15** and **React 19** for the web application
-- **Sanity** and **next-sanity** for structured product and banner content
-- **Stripe** packages are included for payment-related integration
-- **Tailwind CSS** tooling and ESLint for styling support and code quality
+- Product and banner content managed in Sanity.
+- Product details and image galleries.
+- Client-side cart with server-validated Stripe checkout sessions.
+- Stripe Checkout session verification on the success page.
+- Server-only Sanity reads for checkout and server-rendered product listings.
 
-## Features visible in the current codebase
+## Requirements
 
-- Product listing queried from Sanity
-- Dynamic hero and footer banner content queried from Sanity
-- Reusable product and banner components
-- Next.js App Router structure
-
-Payment and checkout behavior should be verified in the current implementation before treating it as production-ready.
-
-## Getting started
-
-### Requirements
-
-- Node.js compatible with the installed Next.js version
+- Node.js 20 or newer
 - npm
-- A configured Sanity project with the required product and banner schemas
+- A Sanity project with the product and banner schemas in this repository
+- Stripe test-mode secret key and a configured test shipping rate
 
-### Install dependencies
-
-```bash
-npm install
-```
-
-### Configure environment variables
-
-Create a local `.env.local` file for the credentials and project settings required by the Sanity client and any payment-related features. Check the source configuration for the exact variable names. **Do not commit secrets or real API keys.**
-
-### Run the development server
+## Local setup
 
 ```bash
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Configure the variables in `.env.local`:
 
-### Available scripts
+- `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, and `NEXT_PUBLIC_SANITY_API_VERSION` configure the public Sanity client used for image URLs.
+- `SANITY_API_READ_TOKEN` is an optional server-only, read-only token for private Sanity datasets. Never prefix it with `NEXT_PUBLIC_`.
+- `STRIPE_SECRET_KEY` is the server-only Stripe secret key. Use a test-mode key during development.
+- `SITE_URL` is the trusted absolute origin used for Stripe return URLs.
+- `STRIPE_SHIPPING_RATE_ID` is the shipping rate created in your Stripe test account.
+- `STRIPE_ALLOWED_SHIPPING_COUNTRIES` is a comma-separated list of ISO country codes, for example `US,CA`.
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run build` | Build the production application |
-| `npm run start` | Start the production server after building |
-| `npm run lint` | Run ESLint |
+Never commit `.env.local` or real credentials. Do not use production Stripe keys for local testing.
 
-## Project status
+## Sanity setup
 
-This repository is under active improvement. Before deployment, verify environment configuration, empty/loading/error states, checkout and payment handling, accessibility, responsive layouts, and production build behavior.
+Use the product and banner schemas in `src/sanity/`. The server-side checkout fetches current product IDs, names, prices, and images directly from Sanity. The browser-supplied cart total, name, image, and price are not trusted.
 
-## Security
+If your Sanity dataset is private, configure a read-only `SANITY_API_READ_TOKEN`. Public product data returned by the product API is cached briefly and contains no Sanity token.
 
-- Keep environment files and credentials out of Git.
-- Use test-mode payment credentials during development.
-- Never expose secret payment keys in browser-side code.
-- Rotate any real secret that has been exposed.
+## Quality checks
+
+```bash
+npm ci
+npm run lint
+npm run build
+npm audit --omit=dev
+```
+
+GitHub Actions runs the production dependency audit, lint, and production build on relevant pull requests.
+
+## Production limitations
+
+- Checkout creates Stripe sessions, but this demo does not yet persist orders or fulfill them from a verified Stripe webhook. Do not treat the success page as an order-management system.
+- Configure and test Stripe webhooks before adding order persistence, shipping notifications, refunds, or fulfillment.
+- Keep the Sanity product dataset and token permissions minimal.
