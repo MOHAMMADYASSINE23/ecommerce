@@ -38,7 +38,7 @@ Never commit `.env.local` or real credentials. Do not use production Stripe keys
 
 ## Sanity setup
 
-Use the product and banner schemas in `src/sanity/`. The server-side checkout fetches current product IDs, names, prices, and images directly from Sanity. The browser-supplied cart total, name, image, and price are not trusted.
+Use the product and banner schemas in `src/sanity/`. The server-side checkout fetches current product IDs, names, prices, and images directly from Sanity. The browser-supplied cart total, name, image, and price are not trusted. Checkout also requires a same-origin JSON request, validates quantities and payload size, and uses a configured site origin for Stripe return URLs.
 
 If your Sanity dataset is private, configure a read-only `SANITY_API_READ_TOKEN`. Public product data returned by the product API is cached briefly and contains no Sanity token.
 
