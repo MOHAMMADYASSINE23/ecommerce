@@ -1,8 +1,8 @@
 name: Temporary dependency refresh
 
 on:
-  push:
-    branches: [security/stripe-and-sanity-hardening]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
