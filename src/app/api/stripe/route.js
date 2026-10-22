@@ -11,7 +11,7 @@ function isValidProductId(value) {
 
 export async function POST(request) {
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = process.env.SITE_URL;
   const shippingRateId = process.env.STRIPE_SHIPPING_RATE_ID;
 
   if (!secretKey || !siteUrl || !shippingRateId) {
