@@ -3,7 +3,7 @@ import { serverClient } from '../sanity/lib/serverClient';
 import { Product, FooterBanner, HeroBanner } from '../../components'
 
 const Page = async () => {
-  const query = '*[_type == "product"]';
+  const query = '*[_type == "product"]{_id, name, slug, price, details, image}';
   const products = await serverClient.fetch(query);
 
   const bannerQuery = '*[_type == "banner"]';
