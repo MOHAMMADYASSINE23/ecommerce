@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { serverClient } from "@/src/sanity/lib/serverClient";
+import { serverClient } from "@/sanity/lib/serverClient";
 
 const PRODUCT_QUERY = '*[_type == "product" && slug.current == $slug][0]';
 const PRODUCTS_QUERY = '*[_type == "product"]';
