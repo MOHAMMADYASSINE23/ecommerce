@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { serverClient } from "@/src/sanity/lib/serverClient";
-import { urlFor } from "@/src/sanity/lib/client";
+import { serverClient } from "@/sanity/lib/serverClient";
+import { urlFor } from "@/sanity/lib/client";
 
 const PRODUCT_QUERY = '*[_type == "product" && _id in $ids]{_id, name, price, image}';
 
