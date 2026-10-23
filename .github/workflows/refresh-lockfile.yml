@@ -21,7 +21,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Apply non-breaking audit fixes to the lockfile
-        run: npm audit fix --package-lock-only --ignore-scripts --no-fund || true
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Commit lockfile if changed
         run: |
           if git diff --quiet -- package-lock.json; then
