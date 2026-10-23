@@ -15,10 +15,10 @@ const ProductDetails = ({ params }) => {
 
   useEffect(() => {
     const fetchProductData = async () => {
-      const query = `*[_type == "product" && slug.current == '${slug}'][0]`;
+      const query = '*[_type == "product" && slug.current == $slug][0]';
       const productsQuery = '*[_type == "product"]';
 
-      const productData = await client.fetch(query);
+      const productData = await client.fetch(query, { slug });
       const productsData = await client.fetch(productsQuery);
 
       setProduct(productData);
@@ -35,13 +35,11 @@ const ProductDetails = ({ params }) => {
   const { image, name, details, price } = product;
 
   const handleBuyNow = () => {
-    console.log('Buy Now clicked with product:', product, 'quantity:', qty);
     onAdd(product, qty);
     setShowCart(true); // Open the cart after adding item
   };
 
   const handleAddToCart = () => {
-    console.log('Add to Cart clicked with product:', product, 'quantity:', qty);
     onAdd(product, qty);
     setShowCart(true); // Open the cart after adding item
   };
