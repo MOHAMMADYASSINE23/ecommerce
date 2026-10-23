@@ -14,8 +14,6 @@ export const StateContext = ({ children }) => {
 
   // Add to cart function
   const onAdd = (product, quantity) => {
-    console.log('onAdd called with:', { product, quantity });
-    console.log('Current cart items:', cartItems);
 
     const checkProductInCart = cartItems.find((item) => item._id === product._id);
 
@@ -23,7 +21,6 @@ export const StateContext = ({ children }) => {
     setTotalQuantities((prevTotalQuantities) => prevTotalQuantities + quantity);
 
     if (checkProductInCart) {
-      console.log('Product already in cart, updating quantity');
       const updatedCartItems = cartItems.map((cartProduct) => {
         if (cartProduct._id === product._id) return {
           ...cartProduct,
@@ -34,13 +31,11 @@ export const StateContext = ({ children }) => {
 
       setCartItems(updatedCartItems);
     } else {
-      console.log('Adding new product to cart');
       product.quantity = quantity;
 
       setCartItems([...cartItems, { ...product }]);
     }
 
-    console.log('Cart updated successfully');
   };
 
   // Remove from cart
