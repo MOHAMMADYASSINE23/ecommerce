@@ -1,4 +1,4 @@
-export default {
+const productSchema = {
   name: 'product',
   title: 'product',
   type: 'document',
