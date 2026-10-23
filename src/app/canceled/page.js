@@ -8,7 +8,7 @@ const Canceled = () => {
         <p className="icon">❌</p>
         <h2>Your order was canceled</h2>
         <p className="description">
-          Continue to shop around and checkout when you're ready.
+          Continue to shop around and checkout when you&apos;re ready.
         </p>
         <Link href="/">
           <button type="button" width="300px" className="btn">
