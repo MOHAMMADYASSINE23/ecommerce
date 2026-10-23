@@ -30,6 +30,9 @@ test("rejects empty, non-array, and oversized carts", () => {
 test("rejects invalid product IDs and draft documents", () => {
   assert.equal(normalizeCart([{ quantity: 1 }]), null);
   assert.equal(normalizeCart([{ _id: "", quantity: 1 }]), null);
+  assert.equal(normalizeCart([{ _id: " ", quantity: 1 }]), null);
+  assert.equal(normalizeCart([{ _id: " product-1", quantity: 1 }]), null);
+  assert.equal(normalizeCart([{ _id: "product-1 ", quantity: 1 }]), null);
   assert.equal(normalizeCart([{ _id: "drafts.product-1", quantity: 1 }]), null);
   assert.equal(normalizeCart([{ _id: "x".repeat(129), quantity: 1 }]), null);
 });

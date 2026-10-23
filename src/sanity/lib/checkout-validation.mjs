@@ -19,6 +19,7 @@ export function normalizeCart(body) {
 
     if (
       !productId ||
+      productId.trim() !== productId ||
       productId.length > 128 ||
       productId.startsWith("drafts.") ||
       !Number.isSafeInteger(quantity) ||
