@@ -64,9 +64,23 @@ export async function POST(request) {
     }
   }
 
+  let rawBody;
+  try {
+    rawBody = await request.text();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  if (new TextEncoder().encode(rawBody).byteLength > 64 * 1024) {
+    return NextResponse.json(
+      { error: "Checkout request is too large or invalid." },
+      { status: 413 },
+    );
+  }
+
   let body;
   try {
-    body = await request.json();
+    body = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ error: "Invalid JSON request body." }, { status: 400 });
   }
