@@ -59,3 +59,4 @@ GitHub Actions runs these checks for the security hardening pull request. Review
 - Stripe and Sanity secret credentials are never exposed through `NEXT_PUBLIC_*` variables.
 - The success page verifies the Stripe session, but **this demo does not yet persist orders or fulfill them from a verified Stripe webhook**. Do not use it as a production order-management or fulfillment system until webhook-backed order persistence is implemented.
 - Use Stripe test mode and a non-production Sanity dataset while testing. Rotate any real secret that was ever exposed in a browser-prefixed environment variable.
+- The latest npm production-tree audit reports 17 remaining findings (9 high, 8 moderate, 0 critical), largely in Sanity/Studio dependency chains. CI blocks critical findings and reports the remaining advisories, but this does **not** mean the dependency audit is clean. Review and resolve the remaining advisories before production use.
