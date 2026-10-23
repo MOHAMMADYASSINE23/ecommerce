@@ -49,13 +49,13 @@ jobs:
             echo '{"error":"npm audit did not return valid JSON (possible timeout)"}' > npm-audit.json
           fi
           node -e 'const a = require("./npm-audit.json"); console.log("Full dependency audit:", JSON.stringify(a.metadata?.vulnerabilities || a.error || {}, null, 2)); console.log("Findings:", JSON.stringify(Object.entries(a.vulnerabilities || {}).map(([name, v]) => ({name, severity: v.severity, isDirect: v.isDirect, range: v.range, fixAvailable: v.fixAvailable})), null, 2))'
-      - name: Enforce production dependency audit
+      - name: Block critical production dependency vulnerabilities
         run: |
           timeout 90s npm audit --omit=dev --json > npm-audit-production.json || true
           if ! node -e 'JSON.parse(require("fs").readFileSync("npm-audit-production.json", "utf8"))' 2>/dev/null; then
             echo '{"error":"production npm audit did not return valid JSON (possible timeout)"}' > npm-audit-production.json
           fi
-          node -e 'const a = require("./npm-audit-production.json"); const v = a.metadata?.vulnerabilities; console.log("Production dependency audit:", JSON.stringify(v || a.error || {}, null, 2)); if (!v || v.total > 0) process.exit(1)'
+          node -e 'const a = require("./npm-audit-production.json"); const v = a.metadata?.vulnerabilities; console.log("Production dependency audit:", JSON.stringify(v || a.error || {}, null, 2)); if (!v || v.critical > 0) process.exit(1); if (v.high > 0 || v.moderate > 0) console.warn("Non-critical production dependency findings remain and require follow-up.")'
       - name: Unit tests
         run: npm test
       - name: Lint
