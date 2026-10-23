@@ -3,7 +3,6 @@ import Head from 'next/head'
 import { Navbar, Footer } from './index'
 
 const Layout = ({ children }) => {
-  console.log('Layout component is rendering');
   return (
     <div className='layout'>
       <Head>

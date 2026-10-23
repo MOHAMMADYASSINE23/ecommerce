@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { AiOutlineMinus, AiOutlinePlus, AiOutlineLeft, AiOutlineShopping } from 'react-icons/ai';
 import { TiDeleteOutline } from 'react-icons/ti';
 
@@ -12,49 +12,47 @@ import getStripe from '../src/sanity/lib/getStripe';
 const Card = () => {
     const cartRef = useRef();
     const { totalPrice, totalQuantities, cartItems, setShowCart, toggleCartItemQuantity, onRemove } = useStateContext();
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [checkoutError, setCheckoutError] = useState("");
 
     const handleCheckout = async () => {
-        console.log('Starting checkout process...');
-        console.log('Cart items:', cartItems);
+        if (isCheckingOut || cartItems.length === 0) return;
+
+        setIsCheckingOut(true);
+        setCheckoutError("");
 
         try {
             const stripe = await getStripe();
-            console.log('Stripe instance:', stripe);
+            if (!stripe) {
+                throw new Error("Secure checkout is unavailable right now.");
+            }
 
             const response = await fetch('/api/stripe', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(cartItems),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cartItems.map(({ _id, quantity }) => ({ _id, quantity }))),
             });
 
-            console.log('API response status:', response.status);
-
+            const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                if (response.status === 404) {
-                    console.error('API endpoint not found. Please check if the Stripe API route is properly configured.');
-                } else if (response.status === 500) {
-                    console.error('Server error (500)');
-                } else {
-                    console.error(`HTTP error! status: ${response.status}`);
-                }
-                return;
+                throw new Error(data.error || "Unable to start checkout. Please try again.");
+            }
+            if (typeof data.id !== "string" || !data.id) {
+                throw new Error("Checkout did not return a valid session.");
             }
 
-            const data = await response.json();
-            console.log('API response data:', data);
-
-            if (data.id) {
-                console.log('Redirecting to Stripe checkout...');
-                stripe.redirectToCheckout({ sessionId: data.id });
-            } else {
-                console.error('No session ID received from API');
-            }
+            const result = await stripe.redirectToCheckout({ sessionId: data.id });
+            if (result?.error) throw result.error;
         } catch (error) {
-            console.error('Checkout error:', error);
+            setCheckoutError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to start checkout. Please try again.",
+            );
+        } finally {
+            setIsCheckingOut(false);
         }
-     }
+    }
   
       return (
     <div className="cart-wrapper" ref={cartRef}>
@@ -81,7 +79,7 @@ const Card = () => {
         <div className='product-container'>
             {cartItems.length >= 1 && cartItems.map((item) => (
                 <div className="product" key={item._id}>
-              <img src={urlFor(item?.image[0]).url()} className="cart-product-image" />
+              <img src={urlFor(item?.image[0]).url()} alt={item.name} className="cart-product-image" />
               <div className="item-desc">
                 <div className="flex top">
                   <h5>{item.name}</h5>
@@ -112,8 +110,9 @@ const Card = () => {
               <h3>${totalPrice}</h3>
             </div>
             <div className="btn-container">
-              <button type="button" className="btn" onClick={handleCheckout}>
-                Pay with Stripe
+              {checkoutError && <p className="checkout-error" role="alert">{checkoutError}</p>}
+              <button type="button" className="btn" onClick={handleCheckout} disabled={isCheckingOut}>
+                {isCheckingOut ? "Opening secure checkout..." : "Pay with Stripe"}
               </button>
             </div>
           </div>
