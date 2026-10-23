@@ -50,7 +50,7 @@ npm run build
 npm audit --omit=dev
 ```
 
-GitHub Actions runs these checks for the security hardening pull request. Review the latest workflow result before merging or deploying.
+GitHub Actions runs tests, lint, build, and dependency-audit checks on pushes to `main` and pull requests. The dependency audit currently reports non-critical findings, so review the latest workflow results and resolve advisories before production deployment.
 
 ## Security and scope
 
