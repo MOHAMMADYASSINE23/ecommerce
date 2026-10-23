@@ -39,3 +39,64 @@ export function normalizeCart(body) {
     quantity,
   }));
 }
+
+export async function readLimitedBody(stream, maxBytes) {
+  if (
+    !stream ||
+    typeof stream.getReader !== "function" ||
+    !Number.isSafeInteger(maxBytes) ||
+    maxBytes < 0
+  ) {
+    return { ok: false, reason: "invalid" };
+  }
+
+  const reader = stream.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      if (!(value instanceof Uint8Array)) {
+        try {
+          await reader.cancel();
+        } catch {}
+        return { ok: false, reason: "invalid" };
+      }
+
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        try {
+          await reader.cancel();
+        } catch {}
+        return { ok: false, reason: "too-large" };
+      }
+
+      chunks.push(value);
+    }
+  } catch {
+    return { ok: false, reason: "invalid" };
+  } finally {
+    try {
+      reader.releaseLock();
+    } catch {}
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    return {
+      ok: true,
+      text: new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+    };
+  } catch {
+    return { ok: false, reason: "invalid" };
+  }
+}

@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { serverClient, serverUrlFor } from "@/sanity/lib/serverClient";
-import { MAX_ITEM_QUANTITY, normalizeCart } from "@/sanity/lib/checkout-validation.mjs";
+import { MAX_ITEM_QUANTITY, normalizeCart, readLimitedBody } from "@/sanity/lib/checkout-validation.mjs";
 
 function getStripeClient() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -64,23 +64,22 @@ export async function POST(request) {
     }
   }
 
-  let rawBody;
-  try {
-    rawBody = await request.text();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
-  }
-
-  if (new TextEncoder().encode(rawBody).byteLength > 64 * 1024) {
+  const bodyResult = await readLimitedBody(request.body, 64 * 1024);
+  if (!bodyResult.ok) {
+    const tooLarge = bodyResult.reason === "too-large";
     return NextResponse.json(
-      { error: "Checkout request is too large or invalid." },
-      { status: 413 },
+      {
+        error: tooLarge
+          ? "Checkout request is too large or invalid."
+          : "Invalid request body.",
+      },
+      { status: tooLarge ? 413 : 400 },
     );
   }
 
   let body;
   try {
-    body = JSON.parse(rawBody);
+    body = JSON.parse(bodyResult.text);
   } catch {
     return NextResponse.json({ error: "Invalid JSON request body." }, { status: 400 });
   }
