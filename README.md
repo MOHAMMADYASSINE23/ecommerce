@@ -16,7 +16,7 @@ A full-stack commerce web application built with Next.js and Sanity. The storefr
 - Reusable product and banner components
 - Next.js App Router structure
 
-Payment and checkout behavior should be verified in the current implementation before treating it as production-ready.
+Checkout validates product IDs and quantities on the server and uses the current product prices from Sanity. Complete an end-to-end test with Stripe test-mode credentials before treating payments as production-ready.
 
 ## Getting started
 
@@ -34,7 +34,7 @@ npm install
 
 ### Configure environment variables
 
-Create a local `.env.local` file for the credentials and project settings required by the Sanity client and any payment-related features. Check the source configuration for the exact variable names. **Do not commit secrets or real API keys.**
+Copy `.env.example` to `.env.local` and replace the placeholders with your own project settings and test credentials. **Never commit `.env.local` or real API keys.**
 
 ### Run the development server
 
@@ -61,5 +61,8 @@ This repository is under active improvement. Before deployment, verify environme
 
 - Keep environment files and credentials out of Git.
 - Use test-mode payment credentials during development.
-- Never expose secret payment keys in browser-side code.
-- Rotate any real secret that has been exposed.
+- `STRIPE_SECRET_KEY` and `SANITY_API_READ_TOKEN` are server-only. Never prefix them with `NEXT_PUBLIC_` or import them into client components.
+- The browser-side Sanity client uses public project configuration only; checkout uses a separate server-only client.
+- Checkout ignores client-supplied product names, prices, and images. The server reloads canonical product data from Sanity.
+- `SITE_URL` defines the checkout return origin; the API does not trust the request `Origin` header for redirect URLs.
+- If a real Stripe secret was ever stored in `NEXT_PUBLIC_STRIPE_SECRET_KEY`, rotate it in Stripe and remove the old environment variable from all deployment environments.
