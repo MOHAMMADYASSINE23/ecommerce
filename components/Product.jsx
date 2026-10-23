@@ -17,6 +17,7 @@ const Product = ({ product }) => {
               width={250}
               height={250}
               className='product-image'
+              alt={name}
               />
               <p className='product-name'>{name}</p>
               <p className='product-price'>${price}</p>
