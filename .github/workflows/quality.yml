@@ -11,7 +11,7 @@ on:
       - ".github/workflows/quality.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,6 +27,7 @@ jobs:
       NEXT_PUBLIC_SANITY_DATASET: production
       NEXT_PUBLIC_SANITY_API_VERSION: "2025-01-01"
       SANITY_API_READ_TOKEN: ci-placeholder-read-only-token
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
       STRIPE_SECRET_KEY: sk_test_placeholder
       SITE_URL: http://localhost:3000
       STRIPE_SHIPPING_RATE_ID: shr_test_placeholder
@@ -41,18 +42,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Temporary compatible lockfile refresh
-        if: github.event_name == 'pull_request'
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm audit fix --package-lock-only --ignore-scripts --no-fund || true
-          if ! git diff --quiet -- package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "security: refresh next-sanity dependency lockfile"
-            git push origin HEAD:${{ github.event.pull_request.head.ref || github.ref_name }}
-          fi
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
       - name: Report full dependency audit
