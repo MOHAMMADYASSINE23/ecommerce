@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { serverClient, serverUrlFor } from "@/src/sanity/lib/serverClient";
-import { MAX_ITEM_QUANTITY, normalizeCart } from "@/src/sanity/lib/checkout-validation.mjs";
+import { serverClient, serverUrlFor } from "@/sanity/lib/serverClient";
+import { MAX_ITEM_QUANTITY, normalizeCart } from "@/sanity/lib/checkout-validation.mjs";
 
 function getCheckoutConfiguration() {
   const siteUrlValue = process.env.SITE_URL;
