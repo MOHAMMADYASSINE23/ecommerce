@@ -15,6 +15,7 @@ export default async function Success({ searchParams }) {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       paymentConfirmed =
+        session.metadata?.application === "ecommerce-store" &&
         session.mode === "payment" &&
         session.status === "complete" &&
         session.payment_status === "paid";
