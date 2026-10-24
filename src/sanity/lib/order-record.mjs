@@ -58,7 +58,8 @@ export function buildPaidOrderRecord(session, lineItems, createdAt) {
       quantity > MAX_ITEM_QUANTITY ||
       !Number.isSafeInteger(amountTotal) ||
       amountTotal < 0 ||
-      !/^[a-z]{3}$/.test(currency)
+      !/^[a-z]{3}$/.test(currency) ||
+      currency !== session.currency
     ) {
       return null;
     }
