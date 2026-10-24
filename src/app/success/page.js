@@ -37,7 +37,7 @@ export default async function Success({ searchParams }) {
         </p>
         <p className="description">
           {paymentConfirmed
-            ? "This demo does not yet save orders or manage fulfillment."
+            ? "Order recording is handled separately by Stripe's webhook and may take a moment. Fulfillment is not automated in this demo."
             : "No order has been confirmed by this page."}
         </p>
         <Link href="/" className="btn">

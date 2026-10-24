@@ -3,12 +3,8 @@ name: Quality Checks
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - ".github/workflows/quality.yml"
   pull_request:
     branches: [main]
-    paths-ignore:
-      - ".github/workflows/quality.yml"
 
 permissions:
   contents: read
@@ -27,6 +23,8 @@ jobs:
       NEXT_PUBLIC_SANITY_DATASET: production
       NEXT_PUBLIC_SANITY_API_VERSION: "2025-01-01"
       SANITY_API_READ_TOKEN: ci-placeholder-read-only-token
+      SANITY_API_WRITE_TOKEN: ci-placeholder-write-token
+      STRIPE_WEBHOOK_SECRET: whsec_ci_placeholder
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
       STRIPE_SECRET_KEY: sk_test_placeholder
       SITE_URL: http://localhost:3000
@@ -34,9 +32,9 @@ jobs:
       STRIPE_ALLOWED_SHIPPING_COUNTRIES: US,CA
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
