@@ -49,6 +49,8 @@ Configure a Stripe webhook endpoint at `/api/stripe/webhook` for `checkout.sessi
 
 The stored order includes the Stripe session/payment intent identifiers, total, currency, line items, optional customer email, and shipping address. Treat order documents as personal data and restrict Sanity Studio access accordingly. Test the webhook using Stripe test mode before deployment.
 
+Use the [Stripe Checkout and webhook test checklist](docs/STRIPE_WEBHOOK_TESTING.md) to verify paid-order persistence, signature rejection, and duplicate delivery before deployment.
+
 ## Quality checks
 
 ```bash
