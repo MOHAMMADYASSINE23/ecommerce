@@ -161,6 +161,7 @@ export async function POST(request) {
     const session = await stripe.checkout.sessions.create({
       submit_type: "pay",
       mode: "payment",
+      metadata: { application: "ecommerce-store" },
       payment_method_types: ["card"],
       billing_address_collection: "auto",
       shipping_address_collection: {

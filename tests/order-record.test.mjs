@@ -8,6 +8,7 @@ const session = {
   mode: "payment",
   status: "complete",
   payment_status: "paid",
+  metadata: { application: "ecommerce-store" },
   amount_total: 12500,
   currency: "usd",
   payment_intent: "pi_test_123",
@@ -49,6 +50,21 @@ test("refuses sessions that are incomplete, unpaid, or not payment sessions", ()
   assert.equal(buildPaidOrderRecord({ ...session, status: "open" }, lineItems, "2026-10-24"), null);
   assert.equal(buildPaidOrderRecord({ ...session, payment_status: "unpaid" }, lineItems, "2026-10-24"), null);
   assert.equal(buildPaidOrderRecord({ ...session, mode: "subscription" }, lineItems, "2026-10-24"), null);
+});
+
+test("rejects paid sessions created by unrelated Stripe integrations", () => {
+  assert.equal(
+    buildPaidOrderRecord(
+      { ...session, metadata: { application: "another-app" } },
+      lineItems,
+      "2026-10-24",
+    ),
+    null,
+  );
+  assert.equal(
+    buildPaidOrderRecord({ ...session, metadata: {} }, lineItems, "2026-10-24"),
+    null,
+  );
 });
 
 test("rejects malformed session IDs, totals, and currencies", () => {

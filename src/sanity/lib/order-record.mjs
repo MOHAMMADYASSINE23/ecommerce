@@ -31,6 +31,7 @@ export function buildPaidOrderRecord(session, lineItems, createdAt) {
     session.mode !== "payment" ||
     session.status !== "complete" ||
     session.payment_status !== "paid" ||
+    session.metadata?.application !== "ecommerce-store" ||
     !Number.isSafeInteger(session.amount_total) ||
     session.amount_total < 0 ||
     typeof session.currency !== "string" ||
