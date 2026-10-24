@@ -77,6 +77,7 @@ test("rejects invalid line items rather than storing untrusted records", () => {
   assert.equal(buildPaidOrderRecord(session, [], "2026-10-24"), null);
   assert.equal(buildPaidOrderRecord(session, [{ ...lineItems[0], quantity: 0 }], "2026-10-24"), null);
   assert.equal(buildPaidOrderRecord(session, [{ ...lineItems[0], amount_total: -10 }], "2026-10-24"), null);
+  assert.equal(buildPaidOrderRecord(session, [{ ...lineItems[0], currency: "eur" }], "2026-10-24"), null);
   assert.equal(buildPaidOrderRecord(session, [{ ...lineItems[0], description: " " }], "2026-10-24"), null);
 });
 
