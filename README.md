@@ -8,7 +8,8 @@ A portfolio commerce storefront built with Next.js, Sanity, and Stripe test-mode
 - Sanity Studio embedded in the Next.js app.
 - Server-side Stripe Checkout session creation with cart validation, quantity limits, configured shipping, and trusted return URLs.
 - Payment-success page that verifies the Stripe Checkout session with Stripe before showing a confirmed-payment message.
-- Automated checkout validation tests, lint, production build, and dependency audit checks.
+- Signed Stripe webhooks that persist verified paid orders to Sanity with retry-safe deterministic IDs.
+- Automated checkout and order-record validation tests, lint, production build, and dependency audit checks.
 
 ## Tech stack
 
