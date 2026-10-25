@@ -81,7 +81,7 @@ test("rejects invalid line items rather than storing untrusted records", () => {
   assert.equal(buildPaidOrderRecord(session, [{ ...lineItems[0], description: " " }], "2026-10-24"), null);
 });
 
-test("does not include a malformed optional email or absent address", () => {
+test("omits malformed, blank, or whitespace-only optional email and absent address", () => {
   const order = buildPaidOrderRecord(
     { ...session, customer_details: { email: "x".repeat(321) }, shipping_details: null },
     lineItems,
@@ -89,5 +89,9 @@ test("does not include a malformed optional email or absent address", () => {
   );
 
   assert.equal("customerEmail" in order, false);
+  const blankEmailOrder = buildPaidOrderRecord({ ...session, customer_details: { email: "   " } }, lineItems, "2026-10-24");
+  assert.equal("customerEmail" in blankEmailOrder, false);
+  const trimmedEmailOrder = buildPaidOrderRecord({ ...session, customer_details: { email: " buyer@example.test " } }, lineItems, "2026-10-24");
+  assert.equal(trimmedEmailOrder.customerEmail, "buyer@example.test");
   assert.equal("shippingAddress" in order, false);
 });
