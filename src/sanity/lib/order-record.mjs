@@ -73,11 +73,11 @@ export function buildPaidOrderRecord(session, lineItems, createdAt) {
     });
   }
 
-  const email =
-    typeof session.customer_details?.email === "string" &&
-    session.customer_details.email.length <= 320
-      ? session.customer_details.email.trim()
-      : undefined;
+  const rawEmail = session.customer_details?.email;
+  const normalizedEmail = typeof rawEmail === "string" ? rawEmail.trim() : "";
+  const email = normalizedEmail && normalizedEmail.length <= 320
+    ? normalizedEmail
+    : undefined;
   const paymentIntentId =
     typeof session.payment_intent === "string" ? session.payment_intent : undefined;
   const shippingAddress = normalizeAddress(session.shipping_details);
